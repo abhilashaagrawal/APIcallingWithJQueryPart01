@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Calling with JQuery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+</head>
+<body>
+  
+  <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        <li class="list-group-item"></li>
+                        <li class="list-group-item"></li>
+                        <li class="list-group-item"></li>
+                        <li class="list-group-item"></li>
+                        <li class="list-group-item"></li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-success btn-sm a_mybtn">GetAuthors</button>
+    <div class="d-flex justify-content-center">
+        <div class="spinner-grow text-success a_myloader" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <script>
+        var loader=document.querySelector('.a_myloader');
+        loader.classList.add('invisible');
+
+        document.querySelector('.a_mybtn').addEventListener('click',function(){
+            if(loader.classList.contains('invisible')){
+                loader.classList.remove('invisible');
+                loader.classList.add('visible');
+            }
+            else{
+                loader.classList.remove('visible');
+                loader.classList.add('invisible');
+            }
+            // alert('okkkkk');
+
+            //promise object
+            let po=new Promise(function(resolve,reject){
+                //producing code
+                $.ajax({
+                    //1 p:v
+                    url:"https://fakerestapi.azurewebsites.net/api/v1/Authors",
+                    type:"GET",
+                    //2 function
+                    success:function(result,status,xhr){
+                        //console.log("Producing code",result);
+                        resolve(result);
+                    },
+                    error:function(xhr,status,error){
+                        console.log("Producing code",error);
+                        reject(error);
+                    }
+                    
+                })
+            })
+            //consuming code
+            po.then((data)=>{
+                loader.remove();
+               // console.log('consuming code',data)
+               var tr=`<table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">FirstName</th>
+                                            <th scope="col">LastName</th>
+                                            <th scope="col">IdBook</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>`;
+               data.forEach(element => {
+                // console.log(element);
+                tr   += `<tr>
+                            <td>`+element.id+`</td>
+                            <td>`+element.firstName+`</td>
+                            <td>`+element.lastName+`</td>
+                            <td>`+element.idBook+`</td>
+                            <td>
+                                <button class="btn btn-success btn-sm a_viewbtn" data-bs-toggle="modal" data-bs-target="#exampleModal">View</button>
+                                <button class="btn btn-primary btn-sm">Edit</button>
+                                <button class="btn btn-danger btn-sm a_delbtn">Delete</button>
+                            </td>
+                        </tr>`;
+               });
+               console.log(tr);
+               tr+=` </tbody>
+                        </table>`;
+                document.body.innerHTML+=tr;
+                
+                document.body.addEventListener('click',function(e){
+                    // alert('okk');
+                    console.log(e);
+                    if(e.target&&e.target.classList[3]=='a_viewbtn')
+                    {
+                        //console.log(e.target.closest('tr').querySelector('td:first-child').innerHTML);
+                        var id=e.target.closest('tr').querySelector('td:first-child').innerHTML;
+                        var fn=e.target.closest('tr').querySelector('td:nth-child(2)').innerHTML;
+                        var ln=e.target.closest('tr').querySelector('td:nth-child(3)').innerHTML;
+                        var bid=e.target.closest('tr').querySelector('td:nth-child(4)').innerHTML;
+                        console.log(id);
+                        console.log(fn);
+                        console.log(ln);
+                        console.log(bid);
+                        document.querySelector('div.modal-body >.list-group>li:first-child').innerHTML=id;
+                        document.querySelector('div.modal-body >.list-group>li:nth-child(2)').innerHTML=fn;
+                        document.querySelector('div.modal-body >.list-group>li:nth-child(3)').innerHTML=ln;
+                        document.querySelector('div.modal-body >.list-group>li:last-child').innerHTML=bid;
+                    }
+                    if(e.target&&e.target.classList[3]=='a_delbtn'){
+                        e.target.closest('tr').remove();
+                    }
+                })
+
+            })
+            .catch((error)=>{
+                console.log(error);
+            });
+
+        })
+
+    </script>
+</body>
+</html>
